@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Personal Expense Tracker</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 30px;
+      background: #f8f9fa;
+    }
+    h1 {
+      text-align: center;
+      color: #333;
+    }
+    .form-section {
+      margin-bottom: 20px;
+      padding: 15px;
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    input, select, button {
+      margin: 5px;
+      padding: 8px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+    button {
+      cursor: pointer;
+      background: #007bff;
+      color: white;
+    }
+    button:hover {
+      background: #0056b3;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+      background: white;
+    }
+    th, td {
+      border: 1px solid #ddd;
+      padding: 10px;
+      text-align: center;
+    }
+    th {
+      background: #007bff;
+      color: white;
+    }
+    .summary-buttons {
+      margin-top: 20px;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Personal Expense Tracker</h1>
+
+  <div class="form-section">
+    <label>Date: </label>
+    <input type="date" id="date">
+    <label>Category: </label>
+    <select id="category">
+      <option>Food</option>
+      <option>Rent</option>
+      <option>Travel</option>
+      <option>Shopping</option>
+      <option>Other</option>
+    </select>
+    <label>Amount: </label>
+    <input type="number" id="amount" placeholder="Enter amount">
+    <button onclick="addExpense()">Add Expense</button>
+  </div>
+
+  <table id="expenseTable">
+    <thead>
+      <tr>
+        <th>Date</th>
+        <th>Category</th>
+        <th>Amount</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <div class="summary-buttons">
+    <button onclick="showWeeklySummary()">Show Weekly Summary</button>
+    <button onclick="showMonthlySummary()">Show Monthly Summary</button>
+  </div>
+
+  <div id="summary"></div>
+
+  <script>
+    let expenses = [];
+
+    function addExpense() {
+      const date = document.getElementById("date").value;
+      const category = document.getElementById("category").value;
+      const amount = parseFloat(document.getElementById("amount").value);
+
+      if (!date || isNaN(amount)) {
+        alert("Please enter a valid date and amount.");
+        return;
+      }
+
+      expenses.push({ date: new Date(date), category, amount });
+      renderTable();
+    }
+
+    function renderTable() {
+      const tbody = document.querySelector("#expenseTable tbody");
+      tbody.innerHTML = "";
+      expenses.forEach(exp => {
+        const row = `<tr>
+          <td>${exp.date.toISOString().split('T')[0]}</td>
+          <td>${exp.category}</td>
+          <td>₹${exp.amount.toFixed(2)}</td>
+        </tr>`;
+        tbody.innerHTML += row;
+      });
+    }
+
+    function showWeeklySummary() {
+      const summary = {};
+      expenses.forEach(exp => {
+        const year = exp.date.getFullYear();
+        const week = getWeekNumber(exp.date);
+        const key = `${year}-W${week}`;
+        summary[key] = (summary[key] || 0) + exp.amount;
+      });
+
+      displaySummary(summary, "Weekly Summary");
+    }
+
+    function showMonthlySummary() {
+      const summary = {};
+      expenses.forEach(exp => {
+        const year = exp.date.getFullYear();
+        const month = exp.date.getMonth() + 1;
+        const key = `${year}-${month}`;
+        summary[key] = (summary[key] || 0) + exp.amount;
+      });
+
+      displaySummary(summary, "Monthly Summary");
+    }
+
+    function displaySummary(data, title) {
+      let html = `<h2>${title}</h2><table><tr><th>Period</th><th>Total Expense</th></tr>`;
+      for (let key in data) {
+        html += `<tr><td>${key}</td><td>₹${data[key].toFixed(2)}</td></tr>`;
+      }
+      html += "</table>";
+      document.getElementById("summary").innerHTML = html;
+    }
+
+    function getWeekNumber(d) {
+      d = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+      const dayNum = d.getUTCDay() || 7;
+      d.setUTCDate(d.getUTCDate() + 4 - dayNum);
+      const yearStart = new Date(Date.UTC(d.getUTCFullYear(),0,1));
+      return Math.ceil((((d - yearStart) / 86400000) + 1)/7);
+    }
+  </script>
+
+</body>
+</html>
